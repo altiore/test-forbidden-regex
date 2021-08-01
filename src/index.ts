@@ -127,7 +127,7 @@ const messageText = (forbiddenImport: string): string =>
 
 export const noImportsInFolder = (
   folder: string,
-  pattern: RegExp | RegExp[] | string | string[],
+  pattern: RegExp | string | Array<RegExp | string>,
   noSrc = false,
 ): ((done) => void) => {
   const folderPath = folder.split('/');
