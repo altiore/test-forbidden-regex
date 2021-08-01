@@ -3,12 +3,15 @@ import 'colors';
 import * as fs from 'fs';
 import * as path from 'path';
 
+/* eslint-disable @typescript-eslint/no-empty-function */
+const DEF_CB = () => {};
+
 export function testForbiddenRegex(
   regexp: RegExp,
   folderPath: string[] | string = 'src',
-  errorText: string = 'Error',
-  cb: (errors?: any) => void = () => {},
-) {
+  errorText = 'Error',
+  cb: (errors?: string[]) => void = DEF_CB,
+): void {
   const srcPath = path.join(
     process.cwd(),
     ...(typeof folderPath === 'string' ? [folderPath] : folderPath),
@@ -27,11 +30,11 @@ export function testForbiddenRegex(
         if (contents.match(regexp)) {
           resolve(
             'File ' +
-            `${pathStr.replace(process.cwd(), '.')}`.underline +
-            ' contains ' +
-            `${String(regexp)}`.red +
-            '. ' +
-            `${errorText}`.yellow,
+              `${pathStr.replace(process.cwd(), '.')}`.underline +
+              ' contains ' +
+              `${String(regexp)}`.red +
+              '. ' +
+              `${errorText}`.yellow,
           );
         } else {
           resolve(false);
@@ -40,7 +43,7 @@ export function testForbiddenRegex(
     });
   };
 
-  const scanDirectory = (pathStr: string): Promise<any[]> => {
+  const scanDirectory = (pathStr: string): Promise<string[]> => {
     return new Promise((resolve, reject) => {
       fs.readdir(pathStr, function (err, files) {
         if (err) {
@@ -52,7 +55,7 @@ export function testForbiddenRegex(
     });
   };
 
-  const toPaths = (directory: string, files: any[]) => {
+  const toPaths = (directory: string, files: string[]): string[] => {
     return files.map((el) => path.resolve(directory, el));
   };
 
