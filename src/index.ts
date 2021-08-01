@@ -7,18 +7,21 @@ import * as path from 'path';
 const DEF_CB = () => {};
 
 export function testForbiddenRegex(
-  regexp: RegExp,
+  regularExpressions: RegExp | RegExp[],
   folderPath: string[] | string = 'src',
   errorText = 'Error',
-  cb: (errors?: string[]) => void = DEF_CB,
+  cb: (errors?: string | string[] | { message: string }) => void = DEF_CB,
 ): void {
-  const srcPath = path.join(
-    process.cwd(),
-    ...(typeof folderPath === 'string' ? [folderPath] : folderPath),
-  );
+  const basePath = process.cwd();
+  const folderPathArr =
+    typeof folderPath === 'string' ? [folderPath] : folderPath;
+  const srcPath = path.join(basePath, ...folderPathArr);
 
   const errors: string[] = [];
   let counter = 0;
+  const regexs = Array.isArray(regularExpressions)
+    ? regularExpressions
+    : [regularExpressions];
 
   const scanFile = (pathStr: string): Promise<string | false> => {
     return new Promise((resolve, reject) => {
@@ -27,15 +30,24 @@ export function testForbiddenRegex(
           reject(err);
           return;
         }
-        if (contents.match(regexp)) {
-          resolve(
-            'File ' +
-              `${pathStr.replace(process.cwd(), '.')}`.underline +
-              ' contains ' +
-              `${String(regexp)}`.red +
-              '. ' +
-              `${errorText}`.yellow,
-          );
+        const localErrors: string[] = [];
+        regexs.forEach((regex) => {
+          if (contents.match(regex)) {
+            localErrors.push(
+              'File file://' +
+                `${pathStr}`.underline +
+                ' contains ' +
+                `${regex}`.red +
+                '. \n' +
+                `${errorText
+                  .replace('$folder', folderPathArr.join('/'))
+                  .replace('$file', pathStr)}`.yellow,
+            );
+          }
+        });
+
+        if (localErrors.length) {
+          resolve(localErrors.join(`\n`));
         } else {
           resolve(false);
         }
@@ -82,27 +94,63 @@ export function testForbiddenRegex(
 
   scanSrc(srcPath).then(() => {
     if (errors.length) {
+      const finalError =
+        `\n    ${errors.length} Error${
+          errors.length === 1 ? ' was' : 's where'
+        } found in ${counter} scanned file${counter > 1 ? 's' : ''}:\n\n`.red +
+        errors.join(`\n`);
+
       if (cb) {
-        cb(errors);
+        cb(finalError);
       } else {
-        errors.forEach((error) => {
-          console.log('    ' + error + '\n');
-        });
-        console.error(
-          `${errors.length} Error${
-            errors.length === 1 ? ' was' : 's where'
-          } found in ${counter} scanned files`.red,
-        );
-        process.exitCode = 1;
+        console.error(finalError);
       }
+
+      process.exitCode = 1;
     } else {
       if (cb) {
         cb();
       } else {
         console.info(
-          `    ${counter} Files was scanned. No ${regexp} Errors\n`.green,
+          `    ${counter} Files was scanned. No ${regexs.join(', ')} Errors\n`
+            .green,
         );
       }
     }
   });
 }
+
+const messageText = (forbiddenImport: string): string =>
+  `We could not use `.yellow +
+  forbiddenImport.red +
+  ` inside ./$folder folder. Please, move it according to project docs`.yellow;
+
+export const noImportsInFolder = (
+  folder: string,
+  pattern: RegExp | RegExp[] | string | string[],
+  noSrc = false,
+): ((done) => void) => {
+  const folderPath = folder.split('/');
+  if (folderPath[0] !== 'src' && !noSrc) {
+    folderPath.unshift('src');
+  }
+
+  const patternArr: Array<string | RegExp> = Array.isArray(pattern)
+    ? pattern
+    : [pattern];
+  const patternRegExpArr: RegExp[] = patternArr.map<RegExp>((p): RegExp => {
+    if (typeof p === 'string') {
+      return new RegExp(p, 'g');
+    }
+
+    return p;
+  });
+  return (done): void => {
+    testForbiddenRegex(
+      patternRegExpArr,
+      folderPath,
+      messageText(patternArr.map((p) => `import ... from ${p}`).join(', ')),
+      done,
+    );
+  };
+};
