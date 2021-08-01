@@ -1,0 +1,41 @@
+{
+  "name": "test-forbidden-regex",
+  "version": "0.0.1",
+  "description": "Test helper for testing forbidden regex",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "new:version": "npm version patch && npm publish && git push origin master && git push --tags",
+    "test": "npm run build",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/altiore/test-forbidden-regex.git"
+  },
+  "keywords": [
+    "test",
+    "regex",
+    "within",
+    "probject",
+    "forbidden"
+  ],
+  "author": {
+    "name": "Pavlo Bielik",
+    "email": "razvanlomov@gmail.com",
+    "url": "https://github.com/Razzwan"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/altiore/test-forbidden-regex/issues"
+  },
+  "homepage": "https://github.com/altiore/test-forbidden-regex#readme",
+  "dependencies": {
+    "colors": "1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "16.4.9",
+    "typescript": "4.3.5"
+  }
+}
