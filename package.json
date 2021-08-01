@@ -1,6 +1,6 @@
 {
   "name": "test-forbidden-regex",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Test helper for testing forbidden regex",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
