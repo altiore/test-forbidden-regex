@@ -154,3 +154,6 @@ export const noImportsInFolder = (
     );
   };
 };
+
+export const relativeImportStartedFromTwoDots =
+  /import (.* from )?['"]\.\.\//gs;

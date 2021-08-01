@@ -15,14 +15,16 @@ This is the test helper [**test-forbidden-regex**](https://www.npmjs.com/package
 ### Usage (with Jest):
 
 ```tsx
-import { noImportsInFolder } from 'test-forbidden-regex';
-
-const relativeImportStartedFromTwoDots = /import (.* from )?['"]\.\.\//gs;
+import {
+  noImportsInFolder,
+  relativeImportStartedFromTwoDots,
+} from 'test-forbidden-regex';
 
 describe('strict folder structure', () => {
   it(
     '@material-ui not allowed inside src/components folder',
     noImportsInFolder(`components`, [
+      // you can use RegExp here
       relativeImportStartedFromTwoDots,
       `@material-ui`,
     ]),
